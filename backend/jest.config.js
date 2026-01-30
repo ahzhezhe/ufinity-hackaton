@@ -13,7 +13,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
-  testTimeout: 30000,
+  testTimeout: 3000,
   verbose: true,
   maxWorkers: 1, // Run tests sequentially to avoid SQLite issues
   forceExit: true,

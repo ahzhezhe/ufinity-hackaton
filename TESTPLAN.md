@@ -1,8 +1,14 @@
-# Backend Test Plan
+# Test Plan
+
+This document outlines the complete test plan for the Hot Desk Booking System, covering both backend unit tests and end-to-end (E2E) tests.
+
+---
+
+# Part 1: Backend Unit Tests
 
 ## Overview
 
-This document outlines the test plan for the Hot Desk Booking System backend API. Tests are written using **Jest** and **Supertest** for HTTP assertions.
+Backend API tests are written using **Jest** and **Supertest** for HTTP assertions.
 
 ## Test Configuration
 
@@ -251,4 +257,202 @@ npm test -- --verbose
 
 # Watch mode for development
 npm test -- --watch
+```
+
+---
+
+# Part 2: End-to-End (E2E) Tests
+
+## Overview
+
+E2E tests validate the complete user flows through the browser using **Playwright**.
+
+## E2E Test Configuration
+
+| Setting | Value |
+|---------|-------|
+| Framework | Playwright 1.58.x |
+| Browser | Chromium |
+| Base URL | http://localhost:5173 |
+| API URL | http://localhost:3000 |
+| Parallel | Sequential (workers: 1) |
+
+### Running E2E Tests
+
+```bash
+cd e2e
+npm test              # Run all E2E tests
+npm run test:headed   # Run with visible browser
+npm run test:ui       # Run with Playwright UI
+npm run test:debug    # Run in debug mode
+npm run report        # Show HTML report
+```
+
+### Prerequisites
+
+Before running E2E tests, ensure both servers are running:
+```bash
+# Terminal 1: Backend
+cd backend && npm run dev
+
+# Terminal 2: Frontend
+cd frontend && npm run dev
+```
+
+Or let Playwright start them automatically (configured in `playwright.config.ts`).
+
+---
+
+## E2E Test Modules
+
+### 1. Authentication (`auth.spec.ts`)
+
+| Test Case | Description | Status |
+|-----------|-------------|--------|
+| Display login form | Shows email, password fields and sign in button | ✅ |
+| Validation errors | Shows error for empty fields | ✅ |
+| Invalid credentials | Shows error for wrong email/password | ✅ |
+| Register employee | Creates new employee account | ✅ |
+| Duplicate email error | Shows error for existing email | ✅ |
+| Password mismatch | Shows error when passwords don't match | ✅ |
+| Login & logout flow | Complete auth cycle | ✅ |
+| Redirect unauthenticated | Redirects to /login for protected routes | ✅ |
+
+**Total: 8 tests**
+
+---
+
+### 2. Admin Portal (`admin.spec.ts`)
+
+| Test Case | Description | Status |
+|-----------|-------------|--------|
+| Dashboard stats | Shows Total Seats, Available, Bookings, Occupancy | ✅ |
+| Admin navigation | Shows Dashboard, Manage Seats, All Bookings, Floor Plans | ✅ |
+| Create seat | Creates new regular seat | ✅ |
+| Create standing desk | Creates seat with type=standing | ✅ |
+| Edit seat | Updates existing seat name | ✅ |
+| Block/unblock seat | Toggles seat blocked status | ✅ |
+| Delete seat | Removes seat from system | ✅ |
+| View bookings | Displays bookings for date range | ✅ |
+| Cancel booking (admin) | Admin cancels any user's booking | ✅ |
+| Floor plans page | Shows upload form elements | ✅ |
+
+**Total: 10 tests**
+
+---
+
+### 3. Employee Portal (`employee.spec.ts`)
+
+| Test Case | Description | Status |
+|-----------|-------------|--------|
+| Availability page | Shows date picker and seats | ✅ |
+| Display available seats | Shows created seats | ✅ |
+| Book AM slot | Books morning slot | ✅ |
+| Book PM slot | Books afternoon slot | ✅ |
+| Show unavailable | Booked slots show as unavailable | ✅ |
+| Hide blocked seats | Blocked seats not shown | ✅ |
+| View my bookings | Shows user's upcoming bookings | ✅ |
+| Cancel own booking | Cancels own booking | ✅ |
+| Empty bookings state | Shows message when no bookings | ✅ |
+| Who booked what | Shows bookings overview | ✅ |
+| Availability status | Shows AM/PM availability per seat | ✅ |
+| Filter by date | Changes date shows different data | ✅ |
+| Employee navigation | Shows correct nav links | ✅ |
+| User info in navbar | Displays user name and role | ✅ |
+
+**Total: 14 tests**
+
+---
+
+### 4. Booking Flows (`booking-flows.spec.ts`)
+
+| Test Case | Description | Status |
+|-----------|-------------|--------|
+| Complete booking flow | Date → Seat → Slot → Confirm → Success | ✅ |
+| Prevent double booking | Same slot shows unavailable | ✅ |
+| Cancel and rebook | Slot available after cancellation | ✅ |
+| Book for tomorrow | Future date booking | ✅ |
+| Different date availability | Availability changes by date | ✅ |
+| Display seat types | Shows Regular/Standing badges | ✅ |
+| Book standing desk | Complete flow for standing desk | ✅ |
+
+**Total: 7 tests**
+
+---
+
+### 5. Access Control (`access-control.spec.ts`)
+
+| Test Case | Description | Status |
+|-----------|-------------|--------|
+| Admin access dashboard | Admin can view /admin | ✅ |
+| Admin access seats | Admin can view /admin/seats | ✅ |
+| Admin access bookings | Admin can view /admin/bookings | ✅ |
+| Admin access floor plans | Admin can view /admin/floor-plans | ✅ |
+| Employee blocked from dashboard | Redirects to / | ✅ |
+| Employee blocked from seats | Redirects to / | ✅ |
+| Employee blocked from admin bookings | Redirects to / | ✅ |
+| Employee blocked from floor plans | Redirects to / | ✅ |
+| Employee access availability | Can view booking page | ✅ |
+| Employee access my bookings | Can view own bookings | ✅ |
+| Employee access who booked | Can view public bookings | ✅ |
+| Employee can't cancel others | No cancel button for other's booking | ✅ |
+| Unauthenticated redirect | All routes redirect to /login | ✅ |
+| Login page accessible | /login works without auth | ✅ |
+
+**Total: 14 tests**
+
+---
+
+## E2E Test Summary
+
+| Module | Tests |
+|--------|-------|
+| Authentication | 8 |
+| Admin Portal | 10 |
+| Employee Portal | 14 |
+| Booking Flows | 7 |
+| Access Control | 14 |
+| **Total** | **53** |
+
+---
+
+## Test Data Management
+
+E2E tests use unique identifiers to isolate test data:
+
+```typescript
+// Unique email generation
+uniqueEmail('prefix')  // → 'prefix-a1b2c3d4@test.com'
+
+// Unique seat names
+`Seat-${uniqueId()}`   // → 'Seat-x9y8z7w6'
+```
+
+Each test creates its own:
+- Admin user (for setup)
+- Employee user (for testing)
+- Seats and bookings as needed
+
+---
+
+## Test Helpers
+
+### Authentication Helpers
+```typescript
+login(page, email, password)    // Login via UI
+register(page, name, email, password)  // Register via UI
+logout(page)                    // Logout via UI
+```
+
+### API Helpers
+```typescript
+createUserViaAPI(request, userData)   // Create user directly
+createSeatViaAPI(request, token, seatData)  // Create seat directly
+```
+
+### Utilities
+```typescript
+getFutureDate(days)  // Returns YYYY-MM-DD
+uniqueId()           // Returns random 8-char string
+uniqueEmail(prefix)  // Returns unique email
 ```
