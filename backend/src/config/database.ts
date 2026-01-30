@@ -3,18 +3,25 @@ import { env } from './env';
 
 let sequelize: Sequelize;
 
-if (env.db.dialect === 'sqlite') {
+// Use SQLite for testing, MySQL for development/production
+if (process.env.NODE_ENV === 'test') {
   sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: env.db.storage,
-    logging: env.nodeEnv === 'development' ? console.log : false,
+    storage: ':memory:',
+    logging: false,
   });
 } else {
   sequelize = new Sequelize(env.db.name, env.db.user, env.db.password, {
     host: env.db.host,
     port: env.db.port,
-    dialect: 'postgres',
+    dialect: 'mysql',
     logging: env.nodeEnv === 'development' ? console.log : false,
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
+    },
   });
 }
 

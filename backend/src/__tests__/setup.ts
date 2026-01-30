@@ -3,8 +3,6 @@ import { sequelize, User, Seat, Booking, FloorPlan } from '../models';
 // Set test environment
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-key';
-process.env.DB_DIALECT = 'sqlite';
-process.env.DB_STORAGE = ':memory:';
 
 beforeAll(async () => {
   // Sync database before all tests

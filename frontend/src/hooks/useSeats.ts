@@ -88,7 +88,7 @@ export function useUpdateSeat() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateSeatData }) => {
-      const response = await api.put<Seat>(`/seats/${id}`, data);
+      const response = await api.patch<Seat>(`/seats/${id}`, data);
       return response.data;
     },
     onSuccess: (_, { id }) => {

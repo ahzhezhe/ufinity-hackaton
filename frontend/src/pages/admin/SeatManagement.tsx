@@ -201,14 +201,14 @@ export function SeatManagement() {
                 <div className="space-y-2">
                   <Label htmlFor="floorPlan">Floor Plan (Optional)</Label>
                   <Select
-                    value={form.watch('floorPlanId') || ''}
-                    onValueChange={(value) => form.setValue('floorPlanId', value || undefined)}
+                    value={form.watch('floorPlanId') || 'none'}
+                    onValueChange={(value) => form.setValue('floorPlanId', value === 'none' ? undefined : value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select floor plan" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {floorPlans?.map((fp) => (
                         <SelectItem key={fp.id} value={fp.id}>
                           {fp.name}
