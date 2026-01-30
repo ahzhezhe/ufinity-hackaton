@@ -112,3 +112,71 @@ export const toggleBlockSeat = async (id: string, isBlocked: boolean): Promise<S
 
   return seat;
 };
+
+export interface DateAvailability {
+  date: string;
+  seats: SeatWithAvailability[];
+}
+
+export const getSeatsAvailabilityRange = async (
+  startDate: string,
+  endDate: string
+): Promise<DateAvailability[]> => {
+  const seats = await Seat.findAll({
+    order: [['name', 'ASC']],
+  });
+
+  // Get all bookings in the date range
+  const bookings = await Booking.findAll({
+    where: {
+      date: {
+        [Op.gte]: startDate,
+        [Op.lte]: endDate,
+      },
+    },
+    attributes: ['seatId', 'slot', 'date'],
+  });
+
+  // Create a map of booked slots by date
+  const bookedSlotsByDate = new Map<string, Map<string, Set<string>>>();
+  bookings.forEach((booking) => {
+    if (!bookedSlotsByDate.has(booking.date)) {
+      bookedSlotsByDate.set(booking.date, new Map());
+    }
+    const dateBookings = bookedSlotsByDate.get(booking.date)!;
+    if (!dateBookings.has(booking.seatId)) {
+      dateBookings.set(booking.seatId, new Set());
+    }
+    dateBookings.get(booking.seatId)!.add(booking.slot);
+  });
+
+  // Generate array of dates
+  const result: DateAvailability[] = [];
+  const currentDate = new Date(startDate);
+  const end = new Date(endDate);
+
+  while (currentDate <= end) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const dateBookings = bookedSlotsByDate.get(dateStr) || new Map();
+
+    const seatsWithAvailability = seats.map((seat) => {
+      const seatBookings = dateBookings.get(seat.id) || new Set();
+      return {
+        ...seat.toJSON(),
+        availability: {
+          am: !seat.isBlocked && !seatBookings.has('AM'),
+          pm: !seat.isBlocked && !seatBookings.has('PM'),
+        },
+      } as SeatWithAvailability;
+    });
+
+    result.push({
+      date: dateStr,
+      seats: seatsWithAvailability,
+    });
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return result;
+};

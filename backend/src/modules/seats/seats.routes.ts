@@ -7,6 +7,8 @@ const router = Router();
 
 // Public routes (authenticated)
 router.get('/', authenticate, seatsController.getAllSeats);
+router.get('/availability', authenticate, seatsController.getSeatsAvailability);
+router.get('/availability/range', authenticate, seatsController.getSeatsAvailabilityRange);
 router.get('/:id', authenticate, seatsController.getSeatById);
 
 // Admin only routes

@@ -5,7 +5,7 @@ import { Layout } from '@/components/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { LoginPage } from '@/pages/Login';
 import { AdminDashboard, SeatManagement, BookingViewer, FloorPlanUpload } from '@/pages/admin';
-import { Availability, BookingFlow, MyBookings, WhoBookedWhat } from '@/pages/public';
+import { Availability, BookingFlow, FloorPlanView, MyBookings, WhoBookedWhat } from '@/pages/public';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +47,7 @@ function AppRoutes() {
         <Route path="/book/multi" element={<BookingFlow />} />
         <Route path="/my-bookings" element={<MyBookings />} />
         <Route path="/who-booked" element={<WhoBookedWhat />} />
+        <Route path="/floor-plan" element={<FloorPlanView />} />
 
         {/* Admin Portal Routes */}
         <Route

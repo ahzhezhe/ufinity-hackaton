@@ -29,6 +29,34 @@ export const getAllSeats = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
+export const getSeatsAvailability = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const date = req.query.date as string;
+    if (!date) {
+      res.status(400).json({ message: 'Date parameter is required' });
+      return;
+    }
+    const seats = await seatsService.getAllSeats(date);
+    res.json(seats);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSeatsAvailabilityRange = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { startDate, endDate } = req.query as { startDate: string; endDate: string };
+    if (!startDate || !endDate) {
+      res.status(400).json({ message: 'startDate and endDate parameters are required' });
+      return;
+    }
+    const result = await seatsService.getSeatsAvailabilityRange(startDate, endDate);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getSeatById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const seat = await seatsService.getSeatById(req.params.id);

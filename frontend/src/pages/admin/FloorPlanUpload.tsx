@@ -18,6 +18,15 @@ import { Loading } from '@/components/ui/Spinner';
 import { Upload, Check, Trash2, Image as ImageIcon } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+function getImageUrl(imageUrl: string): string {
+  if (imageUrl.startsWith('http')) {
+    return imageUrl;
+  }
+  return `${BACKEND_URL}${imageUrl}`;
+}
+
 const uploadSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   image: z.any().refine((files) => files?.length === 1, 'Image is required'),
@@ -172,9 +181,9 @@ export function FloorPlanUpload() {
               <CardContent className="pt-6">
                 <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
                   <img
-                    src={floorPlan.imageUrl}
+                    src={getImageUrl(floorPlan.imageUrl)}
                     alt={floorPlan.name}
-                    className="h-full w-full object-cover"
+                    className="relative z-10 h-full w-full object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}

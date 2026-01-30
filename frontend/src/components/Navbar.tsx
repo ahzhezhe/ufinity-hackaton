@@ -47,6 +47,7 @@ export function Navbar() {
                   <NavLink to="/">Book a Desk</NavLink>
                   <NavLink to="/my-bookings">My Bookings</NavLink>
                   <NavLink to="/who-booked">Who Booked What</NavLink>
+                  <NavLink to="/floor-plan">Floor Plan</NavLink>
                 </>
               )}
             </div>
