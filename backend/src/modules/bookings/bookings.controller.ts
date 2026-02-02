@@ -94,3 +94,18 @@ export const cancelBooking = async (req: Request, res: Response, next: NextFunct
     next(error);
   }
 };
+
+export const createBulkBooking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    const data = bulkBookingSchema.parse(req.body);
+    const result = await bookingsService.createBulkBookingWithPartialSuccess(req.user.userId, data);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -231,6 +231,80 @@ export const createBulkBooking = async (userId: string, data: BulkBookingRequest
   return createdBookings;
 };
 
+export interface BulkBookingResult {
+  created: Booking[];
+  failed: Array<{ seatId: string; date: string; slot: string; reason: string }>;
+}
+
+export const createBulkBookingWithPartialSuccess = async (
+  userId: string,
+  data: BulkBookingRequest
+): Promise<BulkBookingResult> => {
+  const { seatIds, dates, slots } = data;
+
+  // Validate all seats exist
+  const seats = await Seat.findAll({
+    where: {
+      id: {
+        [Op.in]: seatIds,
+      },
+    },
+  });
+
+  const seatMap = new Map(seats.map((s) => [s.id, s]));
+  const created: Booking[] = [];
+  const failed: Array<{ seatId: string; date: string; slot: string; reason: string }> = [];
+
+  // Generate all booking combinations
+  for (const seatId of seatIds) {
+    for (const date of dates) {
+      for (const slot of slots as BookingSlot[]) {
+        const seat = seatMap.get(seatId);
+
+        // Check if seat exists
+        if (!seat) {
+          failed.push({ seatId, date, slot, reason: 'Seat not found' });
+          continue;
+        }
+
+        // Check if seat is blocked
+        if (seat.isBlocked) {
+          failed.push({ seatId, date, slot, reason: `Seat ${seat.name} is blocked` });
+          continue;
+        }
+
+        // Check for existing booking
+        const existingBooking = await Booking.findOne({
+          where: { seatId, date, slot },
+        });
+
+        if (existingBooking) {
+          failed.push({ seatId, date, slot, reason: `Slot already booked` });
+          continue;
+        }
+
+        // Create booking
+        try {
+          const booking = await Booking.create({ userId, seatId, date, slot });
+          const bookingWithAssociations = await Booking.findByPk(booking.id, {
+            include: [
+              { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
+              { model: Seat, as: 'seat', attributes: ['id', 'name', 'type'] },
+            ],
+          });
+          if (bookingWithAssociations) {
+            created.push(bookingWithAssociations);
+          }
+        } catch (error) {
+          failed.push({ seatId, date, slot, reason: 'Failed to create booking' });
+        }
+      }
+    }
+  }
+
+  return { created, failed };
+};
+
 export const cancelBooking = async (bookingId: string, userId: string, isAdmin: boolean) => {
   const booking = await Booking.findByPk(bookingId);
 
